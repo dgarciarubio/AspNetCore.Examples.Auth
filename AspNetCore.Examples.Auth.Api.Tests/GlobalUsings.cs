@@ -2,4 +2,5 @@
 global using FluentAssertions;
 global using Microsoft.AspNetCore.TestHost;
 global using System.Net;
+global using System.Net.Http.Json;
 global using System.Security.Claims;

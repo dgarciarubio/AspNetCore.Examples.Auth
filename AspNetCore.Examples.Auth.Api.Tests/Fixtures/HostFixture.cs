@@ -1,6 +1,8 @@
 ﻿using AspNetCore.Examples.Auth.Api.Tests.TestDoubles;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AspNetCore.Examples.Auth.Api.Tests.Fixtures;
 

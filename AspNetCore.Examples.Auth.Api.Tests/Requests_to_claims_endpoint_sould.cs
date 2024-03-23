@@ -1,3 +1,5 @@
+
+
 namespace AspNetCore.Examples.Auth.Api.Tests;
 
 [Collection(nameof(HostCollectionFixture))]
