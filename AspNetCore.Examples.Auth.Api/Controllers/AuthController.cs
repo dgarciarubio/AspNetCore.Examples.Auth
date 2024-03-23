@@ -1,7 +1,6 @@
 using AspNetCore.Examples.Auth.Api.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 
 namespace AspNetCore.Examples.Auth.Api.Controllers;
 
@@ -25,7 +24,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("claims")]
-    public IEnumerable<Claim> Claims ()
+    public IEnumerable<Claim> Claims()
     {
         return User.Claims.Select(c => new Claim
         {
