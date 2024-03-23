@@ -4,11 +4,14 @@ This project serves as an example of how to authenticate and authorize users in 
 
 It makes use of the following technologies and projects:
 
-- [.NET 7.0](https://dotnet.microsoft.com/es-es/download/dotnet/7.0)
-- [ASP.NET Core 7.0](https://learn.microsoft.com/es-es/aspnet/core/?view=aspnetcore-7.0)
-- [Swashbuckle](https://learn.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-7.0&tabs=visual-studio)
+- [.NET 8.0](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [ASP.NET Core 8.0](https://learn.microsoft.com/aspnet/core/?view=aspnetcore-8.0)
+- [Swashbuckle](https://learn.microsoft.com/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-8.0)
 - [OpenID Connect](https://openid.net/developers/how-connect-works/)
 - [Duende Identity Server Demo](https://demo.duendesoftware.com/)
+- [XUnit](https://xunit.net/)
+- [ASP.NET Core 8.0 integration tests](https://learn.microsoft.com/aspnet/core/test/integration-tests?view=aspnetcore-8.0)
+- [FluentAssertions](https://fluentassertions.com/)
 
 # How to run
 Simply run the Web Api project from visual studio, or from a terminal by executing `dotnet run --project .\AspNetCore.Examples.Auth.Api\AspNetCore.Examples.Auth.Api.csproj` in the root folder.
