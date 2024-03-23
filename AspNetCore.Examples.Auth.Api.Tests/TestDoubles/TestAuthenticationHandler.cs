@@ -21,7 +21,7 @@ public class TestAuthenticationHandler : AuthenticationHandler<AuthenticationSch
         var authHeader = Request.Headers.Authorization.ToString();
         if (string.IsNullOrEmpty(authHeader))
         {
-            return Task.FromResult(AuthenticateResult.Fail("No authorization header found."));
+            return Task.FromResult(AuthenticateResult.NoResult());
         }
 
         var claims = JsonSerializer.Deserialize<Claim[]>(authHeader)?
