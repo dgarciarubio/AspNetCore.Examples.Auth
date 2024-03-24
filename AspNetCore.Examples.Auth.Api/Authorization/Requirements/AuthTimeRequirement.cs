@@ -12,7 +12,7 @@ public class AuthTimeRequirementHandler : AuthorizationHandler<AuthTimeRequireme
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, AuthTimeRequirement requirement)
     {
         if (TryGetAuthTime(context, out var authTime) &&
-            DateTime.UtcNow - authTime < requirement.MaxTimeAgo)
+            DateTime.UtcNow - authTime <= requirement.MaxTimeAgo)
         {
             context.Succeed(requirement);
         }
@@ -20,9 +20,9 @@ public class AuthTimeRequirementHandler : AuthorizationHandler<AuthTimeRequireme
         return Task.CompletedTask;
     }
 
-    private bool TryGetAuthTime(AuthorizationHandlerContext context, out DateTime? authTime)
+    private bool TryGetAuthTime(AuthorizationHandlerContext context, out DateTime authTime)
     {
-        authTime = null;
+        authTime = default;
         var authTimeValue = context.User.FindFirstValue("auth_time");
         if (!double.TryParse(authTimeValue, out var authTimeSeconds))
         {
