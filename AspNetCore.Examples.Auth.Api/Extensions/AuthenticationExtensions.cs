@@ -13,7 +13,7 @@ public static class AuthenticationExtensions
         var builder = services
             .AddAuthentication();
 
-        var bearerConfig = configuration.GetSection($"Authentication:{JwtBearerDefaults.AuthenticationScheme}");
+        var bearerConfig = authConfig.GetSection(JwtBearerDefaults.AuthenticationScheme);
         if (!bearerConfig.Exists())
             return services;
 
