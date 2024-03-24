@@ -11,6 +11,8 @@ It makes use of the following technologies and projects:
 - [Duende Identity Server Demo](https://demo.duendesoftware.com/)
 - [XUnit](https://xunit.net/)
 - [FluentAssertions](https://fluentassertions.com/)
+- [Coverlet](https://github.com/coverlet-coverage/coverlet)
+- [ReportGenerator](https://reportgenerator.io/)
 
 # How to run
 Simply run the Web Api project from Visual Studio, or from a terminal by executing `dotnet run --project .\AspNetCore.Examples.Auth.Api\AspNetCore.Examples.Auth.Api.csproj` in the root folder.
@@ -29,5 +31,7 @@ Access the web api at http://localhost:5297/swagger and try to call the endpoint
 
 # How to test
 Simply run the tests from the Test Explorer in Visual Studio, or from a terminal by executing `dotnet test` in the root folder.
-
 [More about ASP.NET Core 8.0 integration tests](https://learn.microsoft.com/aspnet/core/test/integration-tests?view=aspnetcore-8.0)
+
+To run tests and generate an html coverage analysis report, run the `coverage_report.ps1` powershell script  in the root folder.
+[More about code coverage for unit testing in .NET](https://learn.microsoft.com/dotnet/core/testing/unit-testing-code-coverage)
