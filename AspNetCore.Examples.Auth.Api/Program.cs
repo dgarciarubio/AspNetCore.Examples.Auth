@@ -2,17 +2,17 @@ using AspNetCore.Examples.Auth.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services
-    .AddControllers().Services
-    .AddEndpointsApiExplorer()
-    .AddCustomSwagger(builder.Configuration)
+    .AddHttpClient()
     .AddCustomAuthenticacion(builder.Configuration)
-    .AddCustomAuthorization();
+    .AddCustomAuthorization()
+    .AddCustomOpenApi(builder.Configuration)
+    .AddControllers();
+    
 
 var app = builder.Build();
 
-app.UseCustomSwagger(app.Configuration);
+app.UseCustomOpenApi(builder.Configuration);
 
 app.UseAuthentication();
 app.UseCustomAuthorization();
