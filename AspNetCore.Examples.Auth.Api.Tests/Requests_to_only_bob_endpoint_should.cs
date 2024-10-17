@@ -1,20 +1,20 @@
 namespace AspNetCore.Examples.Auth.Api.Tests;
 
 [Collection(nameof(HostCollectionFixture))]
-public class Requests_to_onlyalice_endpoint_sould(HostFixture hostFixture)
+public class Requests_to_only_bob_endpoint_should(HostFixture hostFixture)
 {
     private readonly TestServer _server = hostFixture.Server;
 
     [Fact]
-    public async Task Succeed_when_user_is_alice()
+    public async Task Succeed_when_user_is_bob()
     {
         var claims = new[] { new Claim
         {
             Type = ClaimTypes.Email,
-            Value = "AliceSmith@email.com",
+            Value = "BobSmith@email.com",
         }};
 
-        var response = await _server.CreateRequest("auth/only-alice")
+        var response = await _server.CreateRequest("auth/only-bob")
             .WithAuthorizationHeader(claims)
             .GetAsync();
 
@@ -22,7 +22,7 @@ public class Requests_to_onlyalice_endpoint_sould(HostFixture hostFixture)
     }
 
     [Fact]
-    public async Task Fail_when_user_is_not_alice()
+    public async Task Fail_when_user_is_not_bob()
     {
         var claims = new[] { new Claim
         {
@@ -30,7 +30,7 @@ public class Requests_to_onlyalice_endpoint_sould(HostFixture hostFixture)
             Value = "Other@email.com",
         }};
 
-        var response = await _server.CreateRequest("auth/only-alice")
+        var response = await _server.CreateRequest("auth/only-bob")
             .WithAuthorizationHeader(claims)
             .GetAsync();
 
@@ -40,7 +40,7 @@ public class Requests_to_onlyalice_endpoint_sould(HostFixture hostFixture)
     [Fact]
     public async Task Fail_when_not_authenticated()
     {
-        var response = await _server.CreateRequest("auth/only-alice")
+        var response = await _server.CreateRequest("auth/only-bob")
             .GetAsync();
 
         response.Should().HaveStatusCode(HttpStatusCode.Unauthorized);

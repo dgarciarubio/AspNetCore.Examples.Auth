@@ -7,8 +7,7 @@ builder.Services
     .AddHttpClient()
     .AddCustomAuthentication(builder.Configuration)
     .AddCustomAuthorization()
-    .AddCustomOpenApi(builder.Configuration);
-    
+    .AddCustomOpenApi();
 
 var app = builder.Build();
 

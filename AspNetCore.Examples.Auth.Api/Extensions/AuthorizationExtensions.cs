@@ -43,10 +43,10 @@ public static class AuthorizationExtensions
         {
             if (context.User.FindFirstValue(ClaimTypes.Email) == AliceEmail)
             {
-                context.User.AddIdentity(new ClaimsIdentity(new[]
-                {
+                context.User.AddIdentity(new ClaimsIdentity(
+                [
                     new System.Security.Claims.Claim(ClaimTypes.Role, Roles.Admin),
-                }));
+                ]));
             }
 
             return next();

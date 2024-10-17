@@ -1,14 +1,12 @@
-
-
 namespace AspNetCore.Examples.Auth.Api.Tests;
 
 [Collection(nameof(HostCollectionFixture))]
-public class Requests_to_claims_endpoint_sould(HostFixture hostFixture)
+public class Requests_to_claims_endpoint_should(HostFixture hostFixture)
 {
     private readonly TestServer _server = hostFixture.Server;
 
     [Fact]
-    public async Task Succceed_when_authenticated()
+    public async Task Succeed_when_authenticated()
     {
         var claims = new[] {
             new Claim { Type = "TestClaim1", Value = "Value1" },

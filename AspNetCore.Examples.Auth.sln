@@ -9,6 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Examples.Auth.Ap
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{64154395-42D7-495D-A517-6B979C66EB8E}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		global.json = global.json
 		README.md = README.md
 	EndProjectSection

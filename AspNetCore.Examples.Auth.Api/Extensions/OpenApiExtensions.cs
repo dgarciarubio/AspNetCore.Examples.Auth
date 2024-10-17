@@ -11,7 +11,7 @@ namespace AspNetCore.Examples.Auth.Api.Extensions;
 
 public static class OpenApiExtensions
 {
-    public static IServiceCollection AddCustomOpenApi(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddCustomOpenApi(this IServiceCollection services)
     {
         return services
             .AddSingleton<DiscoveryDocumentProvider>()
@@ -53,17 +53,11 @@ public static class OpenApiExtensions
         return authorize && !allowAnonymous;
     }
 
-    private class DiscoveryDocumentProvider
+    private class DiscoveryDocumentProvider(IHttpClientFactory httpClientFactory, IOptionsMonitor<JwtBearerOptions> jwtBearerOptions)
     {
-        private readonly IOptionsMonitor<JwtBearerOptions> _jwtBearerOptions;
-        private readonly HttpClient _httpClient;
+        private readonly IOptionsMonitor<JwtBearerOptions> _jwtBearerOptions = jwtBearerOptions;
+        private readonly HttpClient _httpClient = httpClientFactory.CreateClient(nameof(DiscoveryDocumentProvider));
         private DiscoveryDocumentResponse? _value;
-
-        public DiscoveryDocumentProvider(IHttpClientFactory httpClientFactory, IOptionsMonitor<JwtBearerOptions> jwtBearerOptions)
-        {
-            _jwtBearerOptions = jwtBearerOptions;
-            _httpClient = httpClientFactory.CreateClient(nameof(DiscoveryDocumentProvider));
-        }
 
         public async Task<DiscoveryDocumentResponse?> GetDiscoveryDocument()
         {
@@ -86,9 +80,7 @@ public static class OpenApiExtensions
             if (securityScheme is null)
                 return;
 
-            if (document.Components is null)
-                document.Components = new OpenApiComponents();
-
+            document.Components ??= new OpenApiComponents();
             document.Components.SecuritySchemes.Add(securityScheme.Name, _securityScheme);
         }
 
@@ -128,7 +120,7 @@ public static class OpenApiExtensions
 
     private class OpenApiAuthOperationTransformer : IOpenApiOperationTransformer
     {
-        private static readonly OpenApiResponses _authorizedResponses = new OpenApiResponses()
+        private static readonly OpenApiResponses _authorizedResponses = new()
         {
             ["401"] = new OpenApiResponse { Description = "User not authenticated." },
             ["403"] = new OpenApiResponse { Description = "User not authorized to perform this action." },

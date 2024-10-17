@@ -1,7 +1,7 @@
 namespace AspNetCore.Examples.Auth.Api.Tests;
 
 [Collection(nameof(HostCollectionFixture))]
-public class Requests_to_onlysameauthor_endpoint_sould(HostFixture hostFixture)
+public class Requests_to_only_same_author_endpoint_should(HostFixture hostFixture)
 {
     private readonly TestServer _server = hostFixture.Server;
 

@@ -6,16 +6,12 @@ using System.Text.Json;
 
 namespace AspNetCore.Examples.Auth.Api.Tests.TestDoubles;
 
-public class TestAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class TestAuthenticationHandler(
+    IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger,
+    UrlEncoder encoder
+) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-    public TestAuthenticationHandler(
-        IOptionsMonitor<AuthenticationSchemeOptions> options,
-        ILoggerFactory logger,
-        UrlEncoder encoder)
-        : base(options, logger, encoder)
-    {
-    }
-
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var authHeader = Request.Headers.Authorization.ToString();
