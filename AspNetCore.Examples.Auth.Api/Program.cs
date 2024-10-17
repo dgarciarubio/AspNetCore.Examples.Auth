@@ -1,13 +1,13 @@
+using AspNetCore.Examples.Auth.Api.Authorization;
 using AspNetCore.Examples.Auth.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
     .AddHttpClient()
-    .AddCustomAuthenticacion(builder.Configuration)
+    .AddCustomAuthentication(builder.Configuration)
     .AddCustomAuthorization()
-    .AddCustomOpenApi(builder.Configuration)
-    .AddControllers();
+    .AddCustomOpenApi(builder.Configuration);
     
 
 var app = builder.Build();
@@ -17,7 +17,7 @@ app.UseCustomOpenApi(builder.Configuration);
 app.UseAuthentication();
 app.UseCustomAuthorization();
 
-app.MapControllers();
+app.MapAuthEndpoints();
 
 app.Run();
 
