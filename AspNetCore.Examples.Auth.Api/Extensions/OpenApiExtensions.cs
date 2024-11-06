@@ -29,11 +29,7 @@ public static class OpenApiExtensions
         var swaggerUIConfig = configuration.GetSection("OpenApi:SwaggerUI");
         if (swaggerUIConfig.Exists())
         {
-            app.UseSwaggerUI(config =>
-            {
-                config.ConfigObject.Urls = [new() { Name = "V1", Url = "/openapi/v1.json" }];
-                swaggerUIConfig.Bind(config);
-            });
+            app.UseSwaggerUI(swaggerUIConfig.Bind);
         }
 
         var scalarConfig = configuration.GetSection("OpenApi:Scalar");
