@@ -11,7 +11,10 @@ builder.Services
 
 var app = builder.Build();
 
-app.UseCustomOpenApi(builder.Configuration);
+if (app.Environment.IsDevelopment())
+{
+    app.UseCustomOpenApi(builder.Configuration);
+}
 
 app.UseAuthentication();
 app.UseCustomAuthorization();

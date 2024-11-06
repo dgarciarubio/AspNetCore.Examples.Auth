@@ -6,17 +6,11 @@ public static class AuthenticationExtensions
 {
     public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        var authConfig = configuration.GetSection("Authentication");
-        if (!authConfig.Exists())
-            return services;
+        var bearerConfig = configuration
+            .GetSection($"Authentication:{JwtBearerDefaults.AuthenticationScheme}");
 
-        var builder = services.AddAuthentication();
-
-        var bearerConfig = authConfig.GetSection(JwtBearerDefaults.AuthenticationScheme);
-        if (!bearerConfig.Exists())
-            return services;
-
-        return builder
+        return services
+            .AddAuthentication()
             .AddJwtBearer(bearerConfig.Bind)
             .Services;
     }

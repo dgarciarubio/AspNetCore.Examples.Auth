@@ -25,18 +25,8 @@ public static class OpenApiExtensions
     public static WebApplication UseCustomOpenApi(this WebApplication app, IConfiguration configuration)
     {
         app.MapOpenApi();
-
-        var swaggerUIConfig = configuration.GetSection("OpenApi:SwaggerUI");
-        if (swaggerUIConfig.Exists())
-        {
-            app.UseSwaggerUI(swaggerUIConfig.Bind);
-        }
-
-        var scalarConfig = configuration.GetSection("OpenApi:Scalar");
-        if (scalarConfig.Exists())
-        {
-            app.MapScalarApiReference(scalarConfig.Bind);
-        }
+        app.UseSwaggerUI(configuration.GetSection("OpenApi:SwaggerUI").Bind);
+        app.MapScalarApiReference(configuration.GetSection("OpenApi:Scalar").Bind);
 
         return app;
     }
