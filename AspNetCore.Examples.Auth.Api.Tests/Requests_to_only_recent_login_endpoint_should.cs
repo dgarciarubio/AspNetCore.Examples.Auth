@@ -19,7 +19,7 @@ public class Requests_to_only_recent_login_endpoint_should(HostFixture hostFixtu
             .WithAuthorizationHeader(claims)
             .GetAsync();
 
-        response.Should().BeSuccessful();
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class Requests_to_only_recent_login_endpoint_should(HostFixture hostFixtu
             .WithAuthorizationHeader(claims)
             .GetAsync();
 
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class Requests_to_only_recent_login_endpoint_should(HostFixture hostFixtu
             .WithAuthorizationHeader()
             .GetAsync();
 
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -55,6 +55,6 @@ public class Requests_to_only_recent_login_endpoint_should(HostFixture hostFixtu
         var response = await _server.CreateRequest("auth/only-recent-login")
             .GetAsync();
 
-        response.Should().HaveStatusCode(HttpStatusCode.Unauthorized);
+       response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 }

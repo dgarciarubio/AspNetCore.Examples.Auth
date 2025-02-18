@@ -11,6 +11,6 @@ public class Requests_to_anonymous_endpoint_should(HostFixture hostFixture)
         var response = await _server.CreateRequest("auth/anonymous")
             .GetAsync();
 
-        response.Should().BeSuccessful();
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 }

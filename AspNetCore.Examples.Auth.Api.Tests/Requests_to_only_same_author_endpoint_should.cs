@@ -19,7 +19,7 @@ public class Requests_to_only_same_author_endpoint_should(HostFixture hostFixtur
             .WithAuthorizationHeader(claims)
             .GetAsync();
 
-        response.Should().BeSuccessful();
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class Requests_to_only_same_author_endpoint_should(HostFixture hostFixtur
             .WithAuthorizationHeader(claims)
             .GetAsync();
 
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -44,6 +44,6 @@ public class Requests_to_only_same_author_endpoint_should(HostFixture hostFixtur
         var response = await _server.CreateRequest("auth/only-same-author/author@email.com")
             .GetAsync();
 
-        response.Should().HaveStatusCode(HttpStatusCode.Unauthorized);
+       response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 }

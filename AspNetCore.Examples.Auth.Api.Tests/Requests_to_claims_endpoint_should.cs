@@ -17,9 +17,9 @@ public class Requests_to_claims_endpoint_should(HostFixture hostFixture)
             .WithAuthorizationHeader(claims)
             .GetAsync();
 
-        response.Should().BeSuccessful();
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var result = await response.Content.ReadFromJsonAsync<Claim[]>();
-        result.Should().BeEquivalentTo(claims);
+        result.ShouldBe(claims);
     }
 
     [Fact]
@@ -28,6 +28,6 @@ public class Requests_to_claims_endpoint_should(HostFixture hostFixture)
         var response = await _server.CreateRequest("auth/claims")
             .GetAsync();
 
-        response.Should().HaveStatusCode(HttpStatusCode.Unauthorized);
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 }
