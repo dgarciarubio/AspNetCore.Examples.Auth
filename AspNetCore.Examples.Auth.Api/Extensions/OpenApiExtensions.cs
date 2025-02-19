@@ -1,11 +1,10 @@
-﻿using IdentityModel.Client;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Duende.IdentityModel.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
+using System.Runtime.CompilerServices;
 
 namespace AspNetCore.Examples.Auth.Api.Extensions;
 
@@ -14,12 +13,10 @@ public static class OpenApiExtensions
     public static IServiceCollection AddCustomOpenApi(this IServiceCollection services)
     {
         return services
-            .AddSingleton<DiscoveryDocumentProvider>()
-            .AddOpenApi(options =>
-            {
-                options.AddDocumentTransformer(new OpenApiAuthDocumentTransformer());
-                options.AddOperationTransformer(new OpenApiAuthOperationTransformer());
-            });
+            .AddOpenApi(options => options
+                .AddDocumentTransformer<OpenApiAuthDocumentTransformer>()
+                .AddOperationTransformer<OpenApiAuthOperationTransformer>()
+            );
     }
 
     public static WebApplication UseCustomOpenApi(this WebApplication app, IConfiguration configuration)
@@ -39,72 +36,79 @@ public static class OpenApiExtensions
         return authorize && !allowAnonymous;
     }
 
-    private class DiscoveryDocumentProvider(IHttpClientFactory httpClientFactory, IOptionsMonitor<JwtBearerOptions> jwtBearerOptions)
+    private class OpenApiAuthDocumentTransformer(IConfiguration configuration, IHttpClientFactory httpClientFactory) : IOpenApiDocumentTransformer
     {
-        private readonly IOptionsMonitor<JwtBearerOptions> _jwtBearerOptions = jwtBearerOptions;
-        private readonly HttpClient _httpClient = httpClientFactory.CreateClient(nameof(DiscoveryDocumentProvider));
-        private DiscoveryDocumentResponse? _value;
-
-        public async Task<DiscoveryDocumentResponse?> GetDiscoveryDocument()
-        {
-            if (_value is not null)
-                return _value;
-
-            var jwtBearerOptions = _jwtBearerOptions.Get(JwtBearerDefaults.AuthenticationScheme);
-            _value = await _httpClient.GetDiscoveryDocumentAsync(jwtBearerOptions.MetadataAddress);
-            return _value;
-        }
-    }
-
-    private class OpenApiAuthDocumentTransformer : IOpenApiDocumentTransformer
-    {
-        private OpenApiSecurityScheme? _securityScheme;
+        private readonly HttpClient _discoveryDocumentClient = httpClientFactory.CreateClient("DiscoveryDocument");
+        private readonly IConfigurationSection _securitySchemesConfig = configuration.GetSection("OpenApi:SecuritySchemes");
 
         public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
         {
-            var securityScheme = await GetSecurityScheme(context.ApplicationServices);
-            if (securityScheme is null)
-                return;
-
-            document.Components ??= new OpenApiComponents();
-            document.Components.SecuritySchemes.Add(securityScheme.Name, _securityScheme);
+            await foreach (var securityScheme in GetSecuritySchemes(context.ApplicationServices, cancellationToken))
+            {
+                document.Components ??= new OpenApiComponents();
+                document.Components.SecuritySchemes.Add(securityScheme.Key, securityScheme.Value);
+            }
         }
 
-        private async Task<OpenApiSecurityScheme?> GetSecurityScheme(IServiceProvider serviceProvider)
+        private async IAsyncEnumerable<KeyValuePair<string, OpenApiSecurityScheme>> GetSecuritySchemes(IServiceProvider serviceProvider, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            if (_securityScheme is not null)
-                return _securityScheme;
-
-            var discoveryDocumentProvider = serviceProvider.GetRequiredService<DiscoveryDocumentProvider>();
-            var document = await discoveryDocumentProvider.GetDiscoveryDocument();
-            if (document is null || document.AuthorizeEndpoint is null || document.TokenEndpoint is null)
-                return null;
-
-            var jwtBearerOptions = serviceProvider.GetRequiredService<IOptionsMonitor<JwtBearerOptions>>();
-            var audience = jwtBearerOptions.Get(JwtBearerDefaults.AuthenticationScheme).Audience;
-            var scopes = new Dictionary<string, string>();
-            if (audience is not null)
-                scopes.Add(audience, audience);
-
-            _securityScheme = new OpenApiSecurityScheme()
+            foreach (var schemeConfig in _securitySchemesConfig.GetChildren())
             {
-                Name = "OAuth2",
-                Type = SecuritySchemeType.OAuth2,
-                Flows = new()
+                var schemeKey = schemeConfig.Key;
+                var scheme = schemeConfig.Get<OpenApiSecurityScheme>();
+                if (scheme is not null)
                 {
-                    AuthorizationCode = new()
-                    {
-                        AuthorizationUrl = new Uri(document.AuthorizeEndpoint),
-                        TokenUrl = new Uri(document.TokenEndpoint),
-                        Scopes = scopes,
-                    }
-                },
-            };
-            return _securityScheme;
+                    await Configure(scheme.Flows, schemeConfig.GetSection(nameof(scheme.Flows)), cancellationToken);
+                    yield return new(schemeKey, scheme);
+                }
+            }
+        }
+
+        private async Task Configure(OpenApiOAuthFlows flows, IConfigurationSection flowsConfig, CancellationToken cancellationToken)
+        {
+            var flowsEnum = new KeyValuePair<string, OpenApiOAuthFlow>[] {
+                new (nameof(flows.AuthorizationCode), flows.AuthorizationCode),
+                new (nameof(flows.ClientCredentials), flows.ClientCredentials),
+                new (nameof(flows.Password), flows.Password),
+                new (nameof(flows.Implicit), flows.Implicit),
+            }.Where(f => f.Value is not null);
+            foreach (var flow in flowsEnum)
+            {
+                var flowConfig = flowsConfig.GetSection(flow.Key);
+                Configure(flow.Value.Scopes, flowConfig.GetSection(nameof(flow.Value.Scopes)));
+                await DiscoverUrls(flow.Value, flowConfig, cancellationToken);
+            }
+        }
+
+        private void Configure(IDictionary<string, string> scopes, IConfigurationSection scopesConfig)
+        {
+            foreach (var scopeConfig in scopesConfig.GetChildren())
+            {
+                var value = scopeConfig.GetValue<string>("Value");
+                var description = scopeConfig.GetValue<string>("Description");
+                if (value is not null)
+                {
+                    scopes.Add(value, description ?? value);
+                }
+            }
+        }
+
+        private async Task DiscoverUrls(OpenApiOAuthFlow flow, IConfigurationSection flowConfig, CancellationToken cancellationToken)
+        {
+            if (flow.TokenUrl is null || flow.AuthorizationUrl is null)
+            {
+                var request = flowConfig.GetSection("DiscoveryDocumentRequest").Get<DiscoveryDocumentRequest>();
+                if (request is not null)
+                {
+                    var response = await _discoveryDocumentClient.GetDiscoveryDocumentAsync(request, cancellationToken);
+                    flow.TokenUrl = flow.TokenUrl ?? (response.TokenEndpoint is not null ? new Uri(response.TokenEndpoint) : null);
+                    flow.AuthorizationUrl = flow.AuthorizationUrl ?? (response.AuthorizeEndpoint is not null ? new Uri(response.AuthorizeEndpoint) : null);
+                }
+            }
         }
     }
 
-    private class OpenApiAuthOperationTransformer : IOpenApiOperationTransformer
+    private class OpenApiAuthOperationTransformer(IConfiguration configuration) : IOpenApiOperationTransformer
     {
         private static readonly OpenApiResponses _authorizedResponses = new()
         {
@@ -112,7 +116,8 @@ public static class OpenApiExtensions
             ["403"] = new OpenApiResponse { Description = "User not authorized to perform this action." },
         };
 
-        private OpenApiSecurityRequirement? _securityRequirement;
+        private readonly IEnumerable<OpenApiSecurityRequirement> _securityRequirements = GetSecurityRequirements(configuration.GetSection("OpenApi:SecurityRequirements"))
+            .ToArray();
 
         public Task TransformAsync(OpenApiOperation operation, OpenApiOperationTransformerContext context, CancellationToken cancellationToken)
         {
@@ -124,39 +129,33 @@ public static class OpenApiExtensions
                 operation.Responses.Add(response.Key, response.Value);
             }
 
-            var securityRequirement = GetSecurityRequirement(context.ApplicationServices);
-            if (securityRequirement is null)
-                return Task.CompletedTask;
+            foreach (var securityRequirement in _securityRequirements)
+            {
+                operation.Security.Add(securityRequirement);
+            }
 
-            operation.Security.Add(securityRequirement);
             return Task.CompletedTask;
         }
 
-        private OpenApiSecurityRequirement GetSecurityRequirement(IServiceProvider serviceProvider)
+        private static IEnumerable<OpenApiSecurityRequirement> GetSecurityRequirements(IConfigurationSection securityRequirementsConfig)
         {
-            if (_securityRequirement is not null)
-                return _securityRequirement;
-
-            var referenceSecurityScheme = new OpenApiSecurityScheme()
+            foreach (var requirementConfig in securityRequirementsConfig.GetChildren())
             {
-                Reference = new()
+                var requirement = new OpenApiSecurityRequirement();
+                foreach (var schemeConfig in requirementConfig.GetChildren())
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "OAuth2",
-                },
-            };
-
-            var jwtBearerOptions = serviceProvider.GetRequiredService<IOptionsMonitor<JwtBearerOptions>>();
-            var audience = jwtBearerOptions.Get(JwtBearerDefaults.AuthenticationScheme).Audience;
-            var scopes = new List<string>();
-            if (audience is not null)
-                scopes.Add(audience);
-
-            _securityRequirement = new OpenApiSecurityRequirement()
-            {
-                { referenceSecurityScheme, scopes }
-            };
-            return _securityRequirement;
+                    var scheme = schemeConfig.GetSection("SecurityScheme").Get<OpenApiSecurityScheme>();
+                    var scopes = schemeConfig.GetSection("Scopes").Get<string[]>();
+                    if (scheme is not null)
+                    {
+                        requirement.Add(scheme, scopes ?? []);
+                    }
+                }
+                if (requirement.Any())
+                {
+                    yield return requirement;
+                }
+            }
         }
     }
 }
