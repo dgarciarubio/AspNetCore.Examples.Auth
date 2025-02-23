@@ -11,7 +11,7 @@ It makes use of the following technologies and projects:
 - [OpenID Connect](https://openid.net/developers/how-connect-works/)
 - [Duende Identity Server Demo](https://demo.duendesoftware.com/)
 - [XUnit](https://xunit.net/)
-- [FluentAssertions](https://fluentassertions.com/)
+- [Shouldly](https://docs.shouldly.org/)
 - [Coverlet](https://github.com/coverlet-coverage/coverlet)
 - [ReportGenerator](https://reportgenerator.io/)
 
